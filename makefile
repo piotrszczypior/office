@@ -1,3 +1,8 @@
 all: office
+
 office: src/main.cpp
-		g++ src/main.cpp -o office -lncurses -pthread
+		mkdir -p build
+		g++ src/main.cpp -o build/office -lncurses -pthread
+
+clean:
+	rm -r build
