@@ -2,7 +2,7 @@ all: office
 
 office: src/main.cpp
 		mkdir -p build
-		g++ src/* -o build/office -lncurses -pthread
+		g++ $(shell find src -type f -name '*.cpp') -o build/office -lncurses -pthread
 
 clean:
 	rm -r build

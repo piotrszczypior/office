@@ -1,6 +1,6 @@
 #include "Elevator.h"
 #include "mutex"
-#include "config.h"
+#include "../config/config.h"
 
 void Elevator::draw_elevator() {
     int max_x, max_y;
@@ -19,11 +19,6 @@ void Elevator::draw_elevator() {
     box(elevator_window, 0 , 0);
 
     wattron(elevator_window, COLOR_PAIR(1));
-
-    const string title = "ELEVATOR";
-    int title_start_x = (window_width - title.size()) / 2;
-    mvwprintw(elevator_window, 2, title_start_x, "%s", title.c_str());
-
     wattroff(elevator_window, COLOR_PAIR(1));
 
     wrefresh(elevator_window);
