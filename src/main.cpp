@@ -78,6 +78,27 @@ void animate_rectangle() {
 }
 
 
+void print_shaft() {
+    int max_x, max_y;
+    getmaxyx(stdscr, max_y, max_x);
+    // init_pair(1, COLOR_BLUE, COLOR_BLACK);
+
+    const int height = 40;
+    const int width = 20;
+    const int start_y = 3;
+    const int start_x = (COLS - width) / 2; 
+
+    WINDOW *elevator_shaft = newwin(height, width, start_y, start_x);
+
+    std::lock_guard<std::mutex> writing_lock(mx_drawing);
+    // wattron(elevator_shaft, COLOR_PAIR(1));
+    box(elevator_shaft, 0, 0);
+    // wattroff(elevator_shaft, COLOR_PAIR(1));
+
+    wrefresh(elevator_shaft);
+}
+
+
 
 int main() {
     initscr();
@@ -90,13 +111,17 @@ int main() {
     curs_set(0);
 
     thread t1(exit_task);
-    thread t2(animate_rectangle);
+    // thread t2(animate_rectangle);
 
     Elevator elevator;
     elevator.draw_elevator();
+    elevator.draw_elevator_shaft();
+
+
+    print_shaft();
 
     t1.join();
-    t2.join();
+    // t2.join();
 
     endwin();
     return 0;

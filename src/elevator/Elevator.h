@@ -18,6 +18,9 @@ private:
 public:
 
     void draw_elevator();
+
+    void draw_elevator_shaft();
+
 };
 
 

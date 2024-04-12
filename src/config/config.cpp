@@ -3,3 +3,4 @@
 
 std::mutex mx_drawing;
 std::atomic<bool> program_running(true);
+
