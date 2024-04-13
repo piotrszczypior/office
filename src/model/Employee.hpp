@@ -10,6 +10,7 @@ private:
     string employee_name;
     int color{};
     int position_x{}, position_y{};
+    int speed;
 
 public:
     explicit Employee() = default;
@@ -37,6 +38,11 @@ public:
         return *this;
     }
 
+    Employee &set_speed(int s) {
+        this->speed = s;
+        return *this;
+    }
+
     string get_employee_name() {
         return employee_name;
     }
@@ -51,6 +57,10 @@ public:
 
     int get_position_y() const {
         return position_y;
+    }
+
+    int get_speed() const {
+        return speed;
     }
 };
 

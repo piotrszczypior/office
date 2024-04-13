@@ -9,7 +9,6 @@ public:
     static void exit_task();
 };
 
-
 void ExitTask::exit_task() {
     while (true) {
         int input_char = getchar();

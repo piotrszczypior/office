@@ -14,6 +14,13 @@
 #define ELEVATOR_WIDTH 18
 #define ELEVATOR_HEIGHT 3
 
+#define EMPLOYEE_EXIT_WIDTH 36
+#define EMPLOYEE_EXIT_HEIGHT (ELEVATOR_HEIGHT + 2)
+
+#define EMPLOYEE_NUMBER 1
+#define EMPLOYEE_START_X 1
+#define EMPLOYEE_START_Y (EMPLOYEE_EXIT_HEIGHT / 2)
+
 inline std::mutex mx_drawing;
 inline std::atomic<bool> program_running(true);
 inline int FLOOR_POSITIONS[] = {THIRD_FLOOR, SECOND_FLOOR, FIRST_FLOOR};
