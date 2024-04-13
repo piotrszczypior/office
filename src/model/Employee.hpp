@@ -1,0 +1,59 @@
+#ifndef OFFICE_EMPLOYEE_H
+#define OFFICE_EMPLOYEE_H
+
+#include <string>
+#include <utility>
+
+using namespace std;
+
+class Employee {
+private:
+    string employee_name;
+    int color{};
+    int position_x{}, position_y{};
+
+public:
+    explicit Employee() = default;
+
+    explicit Employee(string employee_name, int color, int position_x, int position_y) :
+            employee_name(std::move(employee_name)), color(color), position_x(position_x), position_y(position_y) {};
+
+    Employee &set_position_x(int x) {
+        this->position_x = x;
+        return *this;
+    }
+
+    Employee &set_position_y(int y) {
+        this->position_y = y;
+        return *this;
+    }
+
+    Employee &set_color(int c) {
+        this->color = c;
+        return *this;
+    }
+
+    Employee &set_employee_name(string name) {
+        this->employee_name = std::move(name);
+        return *this;
+    }
+
+    string get_employee_name() {
+        return employee_name;
+    }
+
+    int get_color() const {
+        return color;
+    }
+
+    int get_position_x() const {
+        return position_x;
+    }
+
+    int get_position_y() const {
+        return position_y;
+    }
+
+};
+
+#endif //OFFICE_EMPLOYEE_H
