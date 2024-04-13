@@ -1,12 +1,5 @@
-//
-// Created by piotr on 4/6/24.
-//
-
 #ifndef OFFICE_ELEVATOR_H
 #define OFFICE_ELEVATOR_H
-
-#include <ncurses.h>
-#include <vector>
 
 using namespace std;
 

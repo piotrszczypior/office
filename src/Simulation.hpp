@@ -53,7 +53,7 @@ void Simulation::create_employee_threads() {
 void Simulation::elevator_work() {
 
     while (program_running.load()) {
-        elevatorAnimation.draw(elevator);
+        elevatorAnimation.redraw(elevator);
 
         elevator.set_position_y(elevator.get_position_y() + 1);
 
@@ -62,12 +62,12 @@ void Simulation::elevator_work() {
             elevator.set_current_floor(elevator.get_current_floor() - 1);
         }
 
-        if (elevator.get_position_y() >= 37) {
+        if (elevator.get_position_y() >= (SHAFT_HEIGHT - ELEVATOR_HEIGHT)) {
             elevator.set_position_y(1);
             elevator.set_current_floor(3);
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(150));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 

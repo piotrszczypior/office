@@ -1,7 +1,3 @@
-//
-// Created by piotr on 4/13/24.
-//
-
 #ifndef OFFICE_ELEVATORANIMATION_HPP
 #define OFFICE_ELEVATORANIMATION_HPP
 
@@ -11,13 +7,13 @@
 #include <thread>
 
 class ElevatorAnimation {
+private:
     WINDOW *shaft{};
 
 public:
     explicit ElevatorAnimation(WINDOW *s) : shaft(s) {}
 
-public:
-    void draw(const Elevator &elevator) {
+    void redraw(const Elevator &elevator) {
         int max_x = getmaxx(shaft);
 
         int elevator_height = 3;

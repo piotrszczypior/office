@@ -2,7 +2,6 @@
 #define OFFICE_EMPLOYEE_H
 
 #include <string>
-#include <utility>
 
 using namespace std;
 
@@ -53,7 +52,6 @@ public:
     int get_position_y() const {
         return position_y;
     }
-
 };
 
 #endif //OFFICE_EMPLOYEE_H
