@@ -9,6 +9,7 @@
 #include "model/Elevator.hpp"
 #include "ElevatorAnimation.hpp"
 #include "EmployeeAnimation.hpp"
+#include "model/EmployeeBuilder.hpp"
 
 using namespace std;
 
@@ -16,12 +17,11 @@ class Simulation {
     std::vector<std::thread> employees_threads = vector<std::thread>();
     std::thread elevator_thread;
     std::thread drawing_thread;
-
     vector<Employee> employees = vector<Employee>();
 
+
+    Elevator &elevator;
     ElevatorAnimation elevatorAnimation;
-    Elevator elevator;
-    EmployeeAnimation employeeAnimation = EmployeeAnimation();
 
     void create_employee_threads();
 
@@ -36,28 +36,23 @@ public:
             : elevatorAnimation(elevatorAnimation), elevator(elevator) {};
 
     void run();
-
-    static Employee create_employee();
-
-    void create_drawing_thread();
 };
 
 void Simulation::run() {
     create_elevator_thread();
     create_employee_threads();
-    create_drawing_thread();
 
-    for (auto &employee_thread : employees_threads) {
+    for (auto &employee_thread: employees_threads) {
         employee_thread.join();
     }
     elevator_thread.join();
-    drawing_thread.join();
 }
 
 
 void Simulation::create_employee_threads() {
+    EmployeeBuilder employeeBuilder = EmployeeBuilder();
     for (int i = 0; i < EMPLOYEE_NUMBER; ++i) {
-        employees.emplace_back(create_employee());
+        employees.emplace_back(employeeBuilder.build());
     }
 
     for (int i = 0; i < EMPLOYEE_NUMBER; ++i) {
@@ -78,9 +73,7 @@ void Simulation::elevator_work() {
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> floor_distribution(0, 2);
 
-//    WINDOW *employee_window = newwin(EMPLOYEE_)
-
-    int floor = floor_distribution(gen);
+    elevator.set_destination(floor_distribution(gen));
 
     while (program_running.load()) {
         elevatorAnimation.redraw(elevator);
@@ -91,7 +84,7 @@ void Simulation::elevator_work() {
             elevator.set_current_floor(elevator.get_current_floor() - 1);
         }
 
-        if (FLOOR_POSITIONS[floor] == elevator.get_position_y()) {
+        if (FLOOR_POSITIONS[elevator.get_destination_floor()] == elevator.get_position_y()) {
             std::this_thread::sleep_for(std::chrono::seconds(2));
             elevator.remove_all_passengers();
         }
@@ -99,7 +92,7 @@ void Simulation::elevator_work() {
         if (elevator.get_position_y() >= (SHAFT_HEIGHT - ELEVATOR_HEIGHT)) {
             elevator.set_position_y(1);
             elevator.set_current_floor(3);
-            floor = floor_distribution(gen);
+            elevator.set_destination(floor_distribution(gen));
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -107,49 +100,58 @@ void Simulation::elevator_work() {
 }
 
 void Simulation::employee_work(Employee &employee) {
+    WINDOW *employee_window = newwin(2, 2, employee.get_position_y(), employee.get_position_x());
+    wattron(employee_window, COLOR_PAIR(employee.get_color()));
+
     while (program_running.load()) {
         this_thread::sleep_for(chrono::milliseconds(300 * employee.get_speed()));
 
-        if(employee.get_position_x() < EMPLOYEE_EXIT_WIDTH) {
+        if (employee.get_position_x() < TUNNEL_WIDTH + ENTRY_TUNNEL_X - 1) {
             employee.set_position_x(employee.get_position_x() + 1);
+
+            std::lock_guard<std::mutex> guard(mx_drawing);
+            werase(employee_window);
+            mvwin(employee_window, employee.get_position_y(), employee.get_position_x());
+            mvwprintw(employee_window, 0, 1, "%s", employee.get_employee_name().c_str());
+            wrefresh(employee_window);
+
             continue;
         }
 
-        while (!employee.is_in_elevator() && program_running.load()) {
-            employee.set_in_elevator(elevator.add_passenger(employee));
+        while (program_running.load() && elevator.get_current_floor() != 3) {
+            this_thread::sleep_for(chrono::milliseconds(150));
+        }
+        this_thread::sleep_for(chrono::milliseconds(100));
+        elevator.add_passenger(employee);
+
+        while (program_running.load() && elevator.get_current_floor() != elevator.get_destination_floor()) {
+            this_thread::sleep_for(chrono::milliseconds(300));
+        }
+        employee.set_position_y(FLOOR_POSITIONS[elevator.get_destination_floor()] + ELEVATOR_HEIGHT);
+        employee.set_position_x(EXIT_TUNNEL_X);
+
+        this_thread::sleep_for(chrono::milliseconds(500));
+        while (program_running.load()) {
+            this_thread::sleep_for(chrono::milliseconds(300 * employee.get_speed()));
+
+            std::lock_guard<std::mutex> guard(mx_drawing);
+            employee.set_position_x(employee.get_position_x() + 1);
+            werase(employee_window);
+            mvwin(employee_window, employee.get_position_y(), employee.get_position_x());
+            mvwprintw(employee_window, 0, 1, "%s", employee.get_employee_name().c_str());
+            wrefresh(employee_window);
+
+            if (employee.get_position_x() >= TUNNEL_WIDTH + EXIT_TUNNEL_X) {
+                employee.set_position_x(ENTRY_TUNNEL_X + 1);
+                employee.set_position_y(ENTRY_TUNNEL_Y + TUNNEL_HEIGHT / 2);
+                werase(employee_window);
+                wrefresh(employee_window);
+
+                break;
+            }
         }
     }
 }
 
-Employee Simulation::create_employee() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-
-    std::uniform_int_distribution<> speed_dist(1, 5);
-
-    std::uniform_int_distribution<> name_dist('A', 'Z');
-
-    char random_char = static_cast<char>(name_dist(gen));
-    std::string random_name = std::string(1, random_char);
-
-    int random_speed = speed_dist(gen);
-
-    return Employee()
-            .set_position_x(EMPLOYEE_START_X)
-            .set_position_y(EMPLOYEE_START_Y)
-            .set_employee_name(random_name)
-            .set_color(1)
-            .set_speed(random_speed)
-            .set_in_elevator(false);
-}
-
-void Simulation::create_drawing_thread() {
-    drawing_thread = std::thread([this]() -> void {
-        while (program_running.load()) {
-            employeeAnimation.redraw(employees);
-            this_thread::sleep_for(chrono::milliseconds(100));
-        }
-    });
-}
 
 #endif //OFFICE_SIMULATION_HPP

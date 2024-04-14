@@ -14,15 +14,14 @@
 #define ELEVATOR_WIDTH 18
 #define ELEVATOR_HEIGHT 3
 
-#define EMPLOYEE_EXIT_WIDTH 36
-#define EMPLOYEE_EXIT_HEIGHT (ELEVATOR_HEIGHT + 2)
+#define TUNNEL_WIDTH 36
+#define TUNNEL_HEIGHT (ELEVATOR_HEIGHT + 2)
+#define ENTRY_TUNNEL_X (COLS / 2 - TUNNEL_WIDTH - SHAFT_WIDTH / 2)
+#define ENTRY_TUNNEL_Y 3
 
-#define EMPLOYEE_WINDOW_HEIGHT 3
-#define EMPLOYEE_WINDOW_WIDTH 3
+#define EXIT_TUNNEL_X (COLS / 2 + SHAFT_WIDTH / 2)
 
-#define EMPLOYEE_NUMBER 10
-#define EMPLOYEE_START_X 1
-#define EMPLOYEE_START_Y (EMPLOYEE_EXIT_HEIGHT / 2)
+#define EMPLOYEE_NUMBER 4
 
 inline std::mutex mx_drawing;
 inline std::atomic<bool> program_running(true);

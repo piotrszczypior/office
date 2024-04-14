@@ -10,60 +10,30 @@
 #include "config/config.hpp"
 
 class EmployeeAnimation {
-    WINDOW *office_exit;
+public:
+    static WINDOW *print_floor_tunnel(int position_x, int position_y) {
+        WINDOW *floor_tunnel = newwin(TUNNEL_HEIGHT, TUNNEL_WIDTH, position_y, position_x);
 
-    WINDOW *print_third_floor_exit() {
-        const int start_y = 3;
-        const int start_x = COLS / 2 - EMPLOYEE_EXIT_WIDTH - SHAFT_WIDTH / 2;
+        draw_box(floor_tunnel);
 
-        WINDOW *third_floor_exit = newwin(EMPLOYEE_EXIT_HEIGHT, EMPLOYEE_EXIT_WIDTH, start_y, start_x);
-
-        redraw_box(third_floor_exit);
-
-        wrefresh(third_floor_exit);
-        return third_floor_exit;
+        wrefresh(floor_tunnel);
+        return floor_tunnel;
     }
 
-    static void redraw_box(WINDOW *window) {
-        for (int x = 0; x < EMPLOYEE_EXIT_WIDTH; ++x) {
+private:
+    static void draw_box(WINDOW *window) {
+//        mvwaddch(window, 0, 0, ACS_ULCORNER);
+        for (int x = 1; x < TUNNEL_WIDTH - 1; ++x) {
             mvwaddch(window, 0, x, ACS_HLINE);
         }
+//        mvwaddch(window, 0, TUNNEL_WIDTH - 1, ACS_URCORNER);
 
-        for (int y = 0; y < EMPLOYEE_EXIT_HEIGHT; ++y) {
-            mvwaddch(window, y, 0, ACS_VLINE);
+//        mvwaddch(window, TUNNEL_HEIGHT - 1, 0, ACS_LLCORNER);
+        for (int x = 1; x < TUNNEL_WIDTH - 1; ++x) {
+            mvwaddch(window, TUNNEL_HEIGHT - 1, x, ACS_HLINE);
         }
-
-        for (int x = 0; x < EMPLOYEE_EXIT_WIDTH; ++x) {
-            mvwaddch(window, EMPLOYEE_EXIT_HEIGHT - 1, x, ACS_HLINE);
-        }
-
-        mvwaddch(window, 0, 0, ACS_ULCORNER);
-        mvwaddch(window, EMPLOYEE_EXIT_HEIGHT - 1, 0, ACS_LLCORNER);
-//        mvwaddch(window, 0, EMPLOYEE_EXIT_WIDTH - 1, ACS_URCORNER);
-        mvwaddch(window, EMPLOYEE_EXIT_HEIGHT, EMPLOYEE_EXIT_WIDTH - 1, ACS_URCORNER);
-    }
-
-public:
-
-    void redraw(const vector<Employee>& employees) {
-        std::lock_guard<std::mutex> writing_lock(mx_drawing);
-
-        werase(office_exit);
-        redraw_box(office_exit);
-
-        for (auto employee : employees) {
-            if (!employee.is_in_elevator()) {
-                mvwprintw(office_exit, employee.get_position_y(), employee.get_position_x(), "%s", employee.get_employee_name().c_str());
-            }
-        }
-
-        wrefresh(office_exit);
-    }
-
-    EmployeeAnimation() {
-        office_exit = print_third_floor_exit();
+//        mvwaddch(window, TUNNEL_HEIGHT - 1, TUNNEL_WIDTH - 1, ACS_LRCORNER);
     }
 };
-
 
 #endif //OFFICE_EMPLOYEEANIMATION_HPP

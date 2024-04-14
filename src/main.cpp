@@ -33,24 +33,24 @@ WINDOW *print_third_floor_exit() {
     const int start_y = 3;
     const int start_x = 60;
 
-    WINDOW *third_floor_exit = newwin(EMPLOYEE_EXIT_HEIGHT, EMPLOYEE_EXIT_WIDTH, start_y, start_x);
+    WINDOW *third_floor_exit = newwin(TUNNEL_HEIGHT, TUNNEL_WIDTH, start_y, start_x);
 
-    for (int x = 0; x < EMPLOYEE_EXIT_WIDTH; ++x) {
+    for (int x = 0; x < TUNNEL_WIDTH; ++x) {
         mvwaddch(third_floor_exit, 0, x, ACS_HLINE);
     }
 
-    for (int y = 0; y < EMPLOYEE_EXIT_HEIGHT; ++y) {
+    for (int y = 0; y < TUNNEL_HEIGHT; ++y) {
         mvwaddch(third_floor_exit, y, 0, ACS_VLINE);
     }
 
-    for (int x = 0; x < EMPLOYEE_EXIT_WIDTH; ++x) {
-        mvwaddch(third_floor_exit, EMPLOYEE_EXIT_HEIGHT - 1, x, ACS_HLINE);
+    for (int x = 0; x < TUNNEL_WIDTH; ++x) {
+        mvwaddch(third_floor_exit, TUNNEL_HEIGHT - 1, x, ACS_HLINE);
     }
 
     mvwaddch(third_floor_exit, 0, 0, ACS_ULCORNER);
-    mvwaddch(third_floor_exit, EMPLOYEE_EXIT_HEIGHT - 1, 0, ACS_LLCORNER);
-    mvwaddch(third_floor_exit, 0, EMPLOYEE_EXIT_WIDTH - 1, ACS_URCORNER);
-    mvwaddch(third_floor_exit, EMPLOYEE_EXIT_HEIGHT - 1, EMPLOYEE_EXIT_WIDTH - 1, ACS_LRCORNER);
+    mvwaddch(third_floor_exit, TUNNEL_HEIGHT - 1, 0, ACS_LLCORNER);
+    mvwaddch(third_floor_exit, 0, TUNNEL_WIDTH - 1, ACS_URCORNER);
+    mvwaddch(third_floor_exit, TUNNEL_HEIGHT - 1, TUNNEL_WIDTH - 1, ACS_LRCORNER);
 
     wrefresh(third_floor_exit);
     return third_floor_exit;
@@ -80,15 +80,13 @@ int main() {
 
     std::thread exit_thread(&ExitTask::exit_task);
 
-    Employee ele = Employee()
-            .set_color(1)
-            .set_employee_name("d")
-            .set_position_x(1)
-            .set_position_y(2);
-
     draw_exit_window();
     WINDOW *shaft = print_shaft();
-//    WINDOW *office_exit = print_third_floor_exit();
+
+    EmployeeAnimation::print_floor_tunnel(ENTRY_TUNNEL_X, ENTRY_TUNNEL_Y);
+    EmployeeAnimation::print_floor_tunnel(EXIT_TUNNEL_X, FIRST_FLOOR + ELEVATOR_HEIGHT / 2);
+    EmployeeAnimation::print_floor_tunnel(EXIT_TUNNEL_X, SECOND_FLOOR + ELEVATOR_HEIGHT / 2);
+    EmployeeAnimation::print_floor_tunnel(EXIT_TUNNEL_X, THIRD_FLOOR + ELEVATOR_HEIGHT / 2);
 
     Elevator elevator = Elevator()
             .set_current_floor(3)

@@ -10,6 +10,7 @@ private:
     vector<Employee> employees_inside = vector<Employee>();
 
     int current_floor = 0;
+    int destination_floor = 0;
 
 public:
 
@@ -32,6 +33,11 @@ public:
         return *this;
     }
 
+    Elevator &set_destination(int floor) {
+        this->destination_floor = floor;
+        return *this;
+    }
+
     int get_position_x() const {
         return position_x;
     }
@@ -44,16 +50,16 @@ public:
         return current_floor;
     }
 
+    int get_destination_floor() const {
+        return destination_floor;
+    }
+
     vector<Employee> get_employees() {
         return employees_inside;
     }
 
-    bool add_passenger(Employee &employee) {
-        if (current_floor != 3) {
-            return false;
-        }
+    void add_passenger(Employee &employee) {
         employees_inside.push_back(employee);
-        return true;
     }
 
     void remove_all_passengers() {

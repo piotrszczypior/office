@@ -11,13 +11,12 @@ private:
     int color{};
     int position_x{}, position_y{};
     int speed;
-    bool in_elevator;
 
 public:
     explicit Employee() = default;
 
     explicit Employee(string employee_name, int color, int position_x, int position_y) :
-            employee_name(std::move(employee_name)), color(color), position_x(position_x), position_y(position_y) {};
+            employee_name(employee_name), color(color), position_x(position_x), position_y(position_y) {};
 
     Employee &set_position_x(int x) {
         this->position_x = x;
@@ -44,12 +43,12 @@ public:
         return *this;
     }
 
-    Employee &set_in_elevator(bool is_in_elevator) {
-        this->in_elevator = is_in_elevator;
-        return *this;
-    }
+//    Employee &set_in_elevator(bool is_in_elevator) {
+//        this->in_elevator = is_in_elevator;
+//        return *this;
+//    }
 
-    string get_employee_name() {
+    string get_employee_name() const {
         return employee_name;
     }
 
@@ -69,9 +68,9 @@ public:
         return speed;
     }
 
-    bool is_in_elevator() {
-        return in_elevator;
-    }
+//    bool is_in_elevator() {
+//        return in_elevator;
+//    }
 };
 
 #endif //OFFICE_EMPLOYEE_H
