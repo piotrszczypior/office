@@ -1,14 +1,10 @@
-//
-// Created by piotr on 4/14/24.
-//
-
 #ifndef OFFICE_EMPLOYEEBUILDER_HPP
 #define OFFICE_EMPLOYEEBUILDER_HPP
 
 #include <random>
 #include <ncurses.h>
 
-#include "Employee.hpp"
+#include "../model/Employee.hpp"
 #include "../config/config.hpp"
 
 class EmployeeBuilder {

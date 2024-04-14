@@ -5,7 +5,7 @@
 #include "config/config.hpp"
 #include "ExitTask.hpp"
 #include "model/Employee.hpp"
-#include "Simulation.hpp"
+#include "SimulationService.hpp"
 
 using namespace std;
 
@@ -28,34 +28,6 @@ WINDOW *print_shaft() {
     wrefresh(elevator_shaft);
     return elevator_shaft;
 }
-
-WINDOW *print_third_floor_exit() {
-    const int start_y = 3;
-    const int start_x = 60;
-
-    WINDOW *third_floor_exit = newwin(TUNNEL_HEIGHT, TUNNEL_WIDTH, start_y, start_x);
-
-    for (int x = 0; x < TUNNEL_WIDTH; ++x) {
-        mvwaddch(third_floor_exit, 0, x, ACS_HLINE);
-    }
-
-    for (int y = 0; y < TUNNEL_HEIGHT; ++y) {
-        mvwaddch(third_floor_exit, y, 0, ACS_VLINE);
-    }
-
-    for (int x = 0; x < TUNNEL_WIDTH; ++x) {
-        mvwaddch(third_floor_exit, TUNNEL_HEIGHT - 1, x, ACS_HLINE);
-    }
-
-    mvwaddch(third_floor_exit, 0, 0, ACS_ULCORNER);
-    mvwaddch(third_floor_exit, TUNNEL_HEIGHT - 1, 0, ACS_LLCORNER);
-    mvwaddch(third_floor_exit, 0, TUNNEL_WIDTH - 1, ACS_URCORNER);
-    mvwaddch(third_floor_exit, TUNNEL_HEIGHT - 1, TUNNEL_WIDTH - 1, ACS_LRCORNER);
-
-    wrefresh(third_floor_exit);
-    return third_floor_exit;
-}
-
 
 void draw_exit_window() {
     init_pair(1, COLOR_BLUE, COLOR_BLACK);
@@ -94,10 +66,11 @@ int main() {
             .set_position_x(1);
 
     auto elevatorAnimation = ElevatorAnimation(shaft);
-    Simulation simulation = Simulation(elevatorAnimation, elevator);
+    SimulationService simulation = SimulationService(elevatorAnimation, elevator);
     simulation.run();
 
     exit_thread.join();
+
     endwin();
     return 0;
 }

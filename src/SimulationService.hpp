@@ -1,5 +1,5 @@
-#ifndef OFFICE_SIMULATION_HPP
-#define OFFICE_SIMULATION_HPP
+#ifndef OFFICE_SIMULATIONSERVICE_HPP
+#define OFFICE_SIMULATIONSERVICE_HPP
 
 #include <vector>
 #include <thread>
@@ -9,11 +9,11 @@
 #include "model/Elevator.hpp"
 #include "ElevatorAnimation.hpp"
 #include "EmployeeAnimation.hpp"
-#include "model/EmployeeBuilder.hpp"
+#include "builder/EmployeeBuilder.hpp"
 
 using namespace std;
 
-class Simulation {
+class SimulationService {
     std::vector<std::thread> employees_threads = vector<std::thread>();
     std::thread elevator_thread;
     std::thread drawing_thread;
@@ -32,13 +32,13 @@ class Simulation {
     void employee_work(Employee &employee);
 
 public:
-    explicit Simulation(ElevatorAnimation &elevatorAnimation, Elevator &elevator)
+    explicit SimulationService(ElevatorAnimation &elevatorAnimation, Elevator &elevator)
             : elevatorAnimation(elevatorAnimation), elevator(elevator) {};
 
     void run();
 };
 
-void Simulation::run() {
+void SimulationService::run() {
     create_elevator_thread();
     create_employee_threads();
 
@@ -49,7 +49,7 @@ void Simulation::run() {
 }
 
 
-void Simulation::create_employee_threads() {
+void SimulationService::create_employee_threads() {
     EmployeeBuilder employeeBuilder = EmployeeBuilder();
     for (int i = 0; i < EMPLOYEE_NUMBER; ++i) {
         employees.emplace_back(employeeBuilder.build());
@@ -62,13 +62,13 @@ void Simulation::create_employee_threads() {
     }
 }
 
-void Simulation::create_elevator_thread() {
+void SimulationService::create_elevator_thread() {
     elevator_thread = std::thread([this]() -> void {
         elevator_work();
     });
 }
 
-void Simulation::elevator_work() {
+void SimulationService::elevator_work() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> floor_distribution(0, 2);
@@ -99,7 +99,7 @@ void Simulation::elevator_work() {
     }
 }
 
-void Simulation::employee_work(Employee &employee) {
+void SimulationService::employee_work(Employee &employee) {
     WINDOW *employee_window = newwin(2, 2, employee.get_position_y(), employee.get_position_x());
     wattron(employee_window, COLOR_PAIR(employee.get_color()));
 
@@ -154,4 +154,4 @@ void Simulation::employee_work(Employee &employee) {
 }
 
 
-#endif //OFFICE_SIMULATION_HPP
+#endif //OFFICE_SIMULATIONSERVICE_HPP
