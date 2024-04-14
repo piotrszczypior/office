@@ -11,6 +11,7 @@ private:
     int color{};
     int position_x{}, position_y{};
     int speed;
+    bool in_elevator;
 
 public:
     explicit Employee() = default;
@@ -43,6 +44,11 @@ public:
         return *this;
     }
 
+    Employee &set_in_elevator(bool is_in_elevator) {
+        this->in_elevator = is_in_elevator;
+        return *this;
+    }
+
     string get_employee_name() {
         return employee_name;
     }
@@ -61,6 +67,10 @@ public:
 
     int get_speed() const {
         return speed;
+    }
+
+    bool is_in_elevator() {
+        return in_elevator;
     }
 };
 

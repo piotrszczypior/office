@@ -12,9 +12,13 @@ private:
 
 public:
     explicit ElevatorAnimation(WINDOW *s) : shaft(s) {}
+    void redraw(Elevator elevator) {
+        std::string inside_message;
 
-    void redraw(const Elevator &elevator) {
-        const std::string inside_message = "Elevator " + to_string(elevator.get_current_floor());
+        for (auto employee : elevator.get_employees()) {
+            inside_message = "Elevator " + employee.get_employee_name() + " ";
+        }
+        std::lock_guard<std::mutex> writing_lock(mx_drawing);
 
         werase(shaft);
         box(shaft, 0, 0);

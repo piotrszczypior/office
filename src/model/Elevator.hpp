@@ -7,6 +7,7 @@ class Elevator {
 private:
     int position_x{};
     int position_y{};
+    vector<Employee> employees_inside = vector<Employee>();
 
     int current_floor = 0;
 
@@ -41,6 +42,22 @@ public:
 
     int get_current_floor() const {
         return current_floor;
+    }
+
+    vector<Employee> get_employees() {
+        return employees_inside;
+    }
+
+    bool add_passenger(Employee &employee) {
+        if (current_floor != 3) {
+            return false;
+        }
+        employees_inside.push_back(employee);
+        return true;
+    }
+
+    void remove_all_passengers() {
+        employees_inside.clear();
     }
 };
 
