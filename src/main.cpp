@@ -3,9 +3,9 @@
 #include <thread>
 #include <mutex>
 #include "config/config.hpp"
-#include "ExitTask.hpp"
 #include "model/Employee.hpp"
-#include "SimulationService.hpp"
+#include "service/SimulationService.hpp"
+#include "service/ExitService.hpp"
 
 using namespace std;
 
@@ -33,17 +33,6 @@ void init_colors() {
     init_pair(13, COLOR_RED, COLOR_BLACK);
 }
 
-WINDOW *print_shaft() {
-    const int start_y = 3;
-    const int start_x = (COLS - SHAFT_WIDTH) / 2;
-
-    WINDOW *elevator_shaft = newwin(SHAFT_HEIGHT, SHAFT_WIDTH, start_y, start_x);
-
-    box(elevator_shaft, 0, 0);
-    wrefresh(elevator_shaft);
-    return elevator_shaft;
-}
-
 void draw_exit_window() {
     const int height = 3;
     const int width = 30;
@@ -65,10 +54,8 @@ int main() {
     init_library();
     init_colors();
 
-    std::thread exit_thread(&ExitTask::exit_task);
-
+    std::thread exit_thread(&ExitService::exit_task);
     draw_exit_window();
-    WINDOW *shaft = print_shaft();
 
     EmployeeAnimation::print_floor_tunnel(ENTRY_TUNNEL_X, ENTRY_TUNNEL_Y);
     EmployeeAnimation::print_floor_tunnel(EXIT_TUNNEL_X, FIRST_FLOOR + ELEVATOR_HEIGHT / 2);
@@ -80,8 +67,7 @@ int main() {
             .set_position_y(1)
             .set_position_x(1);
 
-    auto elevatorAnimation = ElevatorAnimation(shaft);
-    SimulationService simulation = SimulationService(elevatorAnimation, elevator);
+    SimulationService simulation = SimulationService(elevator);
     simulation.run();
 
     exit_thread.join();

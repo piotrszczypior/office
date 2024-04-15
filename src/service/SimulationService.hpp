@@ -6,11 +6,12 @@
 #include <random>
 #include <map>
 
-#include "config/config.hpp"
-#include "model/Elevator.hpp"
-#include "ElevatorAnimation.hpp"
-#include "EmployeeAnimation.hpp"
-#include "builder/EmployeeBuilder.hpp"
+#include "../config/config.hpp"
+#include "../model/Elevator.hpp"
+#include "../ElevatorAnimation.hpp"
+#include "../EmployeeAnimation.hpp"
+#include "../builder/EmployeeBuilder.hpp"
+#include "../model/Map.hpp"
 
 using namespace std;
 
@@ -19,11 +20,10 @@ class SimulationService {
     std::thread elevator_thread;
     std::thread drawing_thread;
     vector<Employee> employees = vector<Employee>();
-
-    std::map<std::string, bool> occupiedPositions;
+    Map map = Map();
 
     Elevator &elevator;
-    ElevatorAnimation elevatorAnimation;
+    ElevatorAnimation elevatorAnimation = ElevatorAnimation();;
 
     void create_employee_threads();
 
@@ -33,17 +33,8 @@ class SimulationService {
 
     void employee_work(Employee &employee);
 
-    string makeKey(int x, int y);
-
-    bool isPositionFree(int x, int y);
-
-    void occupyPosition(int x, int y);
-
-    void freePosition(int x, int y);
-
 public:
-    explicit SimulationService(ElevatorAnimation &elevatorAnimation, Elevator &elevator)
-            : elevatorAnimation(elevatorAnimation), elevator(elevator) {};
+    explicit SimulationService(Elevator &elevator) : elevator(elevator) {};
 
     void run();
 };
@@ -116,17 +107,17 @@ void SimulationService::employee_work(Employee &employee) {
     std::random_device random_device;
     std::mt19937 generator{random_device()};
 
-    occupyPosition(employee.get_position_x(), employee.get_position_y());
+    map.occupyPosition(employee.get_position_x(), employee.get_position_y());
 
     while (program_running.load()) {
         this_thread::sleep_for(chrono::milliseconds(300 * employee.get_speed()));
 
         if (employee.get_position_x() < TUNNEL_WIDTH + ENTRY_TUNNEL_X - 1) {
-            if (isPositionFree(employee.get_position_x() + 1, employee.get_position_y())) {
+            if (map.isPositionFree(employee.get_position_x() + 1, employee.get_position_y())) {
 
-                freePosition(employee.get_position_x(), employee.get_position_y());
+                map.freePosition(employee.get_position_x(), employee.get_position_y());
                 employee.set_position_x(employee.get_position_x() + 1);
-                occupyPosition(employee.get_position_x(), employee.get_position_y());
+                map.occupyPosition(employee.get_position_x(), employee.get_position_y());
 
                 std::lock_guard<std::mutex> guard(mx_drawing);
                 werase(employee_window);
@@ -138,7 +129,7 @@ void SimulationService::employee_work(Employee &employee) {
             continue;
         }
 
-        freePosition(employee.get_position_x(), employee.get_position_y());
+        map.freePosition(employee.get_position_x(), employee.get_position_y());
         while (program_running.load()) {
             this_thread::sleep_for(chrono::milliseconds(50));
 
@@ -160,9 +151,9 @@ void SimulationService::employee_work(Employee &employee) {
         while (program_running.load()) {
             this_thread::sleep_for(chrono::milliseconds(300 * employee.get_speed()));
 
-            freePosition(employee.get_position_x(), employee.get_position_y());
+            map.freePosition(employee.get_position_x(), employee.get_position_y());
             employee.set_position_x(employee.get_position_x() + 1);
-            occupyPosition(employee.get_position_x(), employee.get_position_y());
+            map.occupyPosition(employee.get_position_x(), employee.get_position_y());
 
             std::lock_guard<std::mutex> guard(mx_drawing);
             werase(employee_window);
@@ -171,7 +162,7 @@ void SimulationService::employee_work(Employee &employee) {
             wrefresh(employee_window);
 
             if (employee.get_position_x() >= TUNNEL_WIDTH + EXIT_TUNNEL_X) {
-                freePosition(employee.get_position_x(), employee.get_position_y());
+                map.freePosition(employee.get_position_x(), employee.get_position_y());
                 employee.set_position_x(ENTRY_TUNNEL_X + 1);
                 employee.set_position_y(ENTRY_TUNNEL_Y + TUNNEL_HEIGHT / 2 + position_y_distribution(generator));
                 werase(employee_window);
@@ -182,26 +173,5 @@ void SimulationService::employee_work(Employee &employee) {
         }
     }
 }
-
-std::string SimulationService::makeKey(int x, int y) {
-    return std::to_string(x) + "," + std::to_string(y);
-}
-
-bool SimulationService::isPositionFree(int x, int y) {
-    std::lock_guard<std::mutex> lock(mx_positions);
-    auto key = makeKey(x, y);
-    return occupiedPositions.find(key) == occupiedPositions.end();
-}
-
-void SimulationService::occupyPosition(int x, int y) {
-    std::lock_guard<std::mutex> lock(mx_positions);
-    occupiedPositions[makeKey(x, y)] = true;
-}
-
-void SimulationService::freePosition(int x, int y) {
-    std::lock_guard<std::mutex> lock(mx_positions);
-    occupiedPositions.erase(makeKey(x, y));
-}
-
 
 #endif //OFFICE_SIMULATIONSERVICE_HPP
