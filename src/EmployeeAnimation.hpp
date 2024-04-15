@@ -22,17 +22,13 @@ public:
 
 private:
     static void draw_box(WINDOW *window) {
-//        mvwaddch(window, 0, 0, ACS_ULCORNER);
         for (int x = 1; x < TUNNEL_WIDTH - 1; ++x) {
             mvwaddch(window, 0, x, ACS_HLINE);
         }
-//        mvwaddch(window, 0, TUNNEL_WIDTH - 1, ACS_URCORNER);
 
-//        mvwaddch(window, TUNNEL_HEIGHT - 1, 0, ACS_LLCORNER);
         for (int x = 1; x < TUNNEL_WIDTH - 1; ++x) {
             mvwaddch(window, TUNNEL_HEIGHT - 1, x, ACS_HLINE);
         }
-//        mvwaddch(window, TUNNEL_HEIGHT - 1, TUNNEL_WIDTH - 1, ACS_LRCORNER);
     }
 };
 
