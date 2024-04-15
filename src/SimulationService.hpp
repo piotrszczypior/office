@@ -4,6 +4,7 @@
 #include <vector>
 #include <thread>
 #include <random>
+#include <map>
 
 #include "config/config.hpp"
 #include "model/Elevator.hpp"
@@ -19,6 +20,7 @@ class SimulationService {
     std::thread drawing_thread;
     vector<Employee> employees = vector<Employee>();
 
+    std::map<std::string, bool> occupiedPositions;
 
     Elevator &elevator;
     ElevatorAnimation elevatorAnimation;
@@ -30,6 +32,14 @@ class SimulationService {
     void elevator_work();
 
     void employee_work(Employee &employee);
+
+    string makeKey(int x, int y);
+
+    bool isPositionFree(int x, int y);
+
+    void occupyPosition(int x, int y);
+
+    void freePosition(int x, int y);
 
 public:
     explicit SimulationService(ElevatorAnimation &elevatorAnimation, Elevator &elevator)
@@ -100,50 +110,70 @@ void SimulationService::elevator_work() {
 }
 
 void SimulationService::employee_work(Employee &employee) {
-    WINDOW *employee_window = newwin(2, 2, employee.get_position_y(), employee.get_position_x());
+    WINDOW *employee_window = newwin(1, 2, employee.get_position_y(), employee.get_position_x());
     wattron(employee_window, COLOR_PAIR(employee.get_color()));
+    std::uniform_int_distribution<> position_y_distribution{-1, 1};
+    std::random_device random_device;
+    std::mt19937 generator{random_device()};
+
+    occupyPosition(employee.get_position_x(), employee.get_position_y());
 
     while (program_running.load()) {
         this_thread::sleep_for(chrono::milliseconds(300 * employee.get_speed()));
 
         if (employee.get_position_x() < TUNNEL_WIDTH + ENTRY_TUNNEL_X - 1) {
-            employee.set_position_x(employee.get_position_x() + 1);
+            if (isPositionFree(employee.get_position_x() + 1, employee.get_position_y())) {
 
-            std::lock_guard<std::mutex> guard(mx_drawing);
-            werase(employee_window);
-            mvwin(employee_window, employee.get_position_y(), employee.get_position_x());
-            mvwprintw(employee_window, 0, 1, "%s", employee.get_employee_name().c_str());
-            wrefresh(employee_window);
+                freePosition(employee.get_position_x(), employee.get_position_y());
+                employee.set_position_x(employee.get_position_x() + 1);
+                occupyPosition(employee.get_position_x(), employee.get_position_y());
 
+                std::lock_guard<std::mutex> guard(mx_drawing);
+                werase(employee_window);
+                mvwin(employee_window, employee.get_position_y(), employee.get_position_x());
+                mvwprintw(employee_window, 0, 1, "%s", employee.get_employee_name().c_str());
+                wrefresh(employee_window);
+
+            }
             continue;
         }
 
-        while (program_running.load() && elevator.get_current_floor() != 3) {
-            this_thread::sleep_for(chrono::milliseconds(150));
+        freePosition(employee.get_position_x(), employee.get_position_y());
+        while (program_running.load()) {
+            this_thread::sleep_for(chrono::milliseconds(50));
+
+            if (elevator.get_current_floor() == 3) {
+                elevator.add_passenger(employee);
+                break;
+            }
         }
         this_thread::sleep_for(chrono::milliseconds(100));
-        elevator.add_passenger(employee);
 
         while (program_running.load() && elevator.get_current_floor() != elevator.get_destination_floor()) {
             this_thread::sleep_for(chrono::milliseconds(300));
         }
-        employee.set_position_y(FLOOR_POSITIONS[elevator.get_destination_floor()] + ELEVATOR_HEIGHT);
+        employee.set_position_y(
+                FLOOR_POSITIONS[elevator.get_destination_floor()] + employee.get_position_y() - 2);
         employee.set_position_x(EXIT_TUNNEL_X);
+        this_thread::sleep_for(chrono::milliseconds(500 * employee.get_speed()));
 
-        this_thread::sleep_for(chrono::milliseconds(500));
         while (program_running.load()) {
             this_thread::sleep_for(chrono::milliseconds(300 * employee.get_speed()));
 
-            std::lock_guard<std::mutex> guard(mx_drawing);
+            freePosition(employee.get_position_x(), employee.get_position_y());
             employee.set_position_x(employee.get_position_x() + 1);
+            occupyPosition(employee.get_position_x(), employee.get_position_y());
+
+            std::lock_guard<std::mutex> guard(mx_drawing);
             werase(employee_window);
             mvwin(employee_window, employee.get_position_y(), employee.get_position_x());
             mvwprintw(employee_window, 0, 1, "%s", employee.get_employee_name().c_str());
             wrefresh(employee_window);
 
             if (employee.get_position_x() >= TUNNEL_WIDTH + EXIT_TUNNEL_X) {
+                freePosition(employee.get_position_x(), employee.get_position_y());
                 employee.set_position_x(ENTRY_TUNNEL_X + 1);
-                employee.set_position_y(ENTRY_TUNNEL_Y + TUNNEL_HEIGHT / 2);
+                employee.set_position_y(ENTRY_TUNNEL_Y + TUNNEL_HEIGHT / 2 + position_y_distribution(generator));
                 werase(employee_window);
                 wrefresh(employee_window);
 
@@ -151,6 +181,26 @@ void SimulationService::employee_work(Employee &employee) {
             }
         }
     }
+}
+
+std::string SimulationService::makeKey(int x, int y) {
+    return std::to_string(x) + "," + std::to_string(y);
+}
+
+bool SimulationService::isPositionFree(int x, int y) {
+    std::lock_guard<std::mutex> lock(mx_positions);
+    auto key = makeKey(x, y);
+    return occupiedPositions.find(key) == occupiedPositions.end();
+}
+
+void SimulationService::occupyPosition(int x, int y) {
+    std::lock_guard<std::mutex> lock(mx_positions);
+    occupiedPositions[makeKey(x, y)] = true;
+}
+
+void SimulationService::freePosition(int x, int y) {
+    std::lock_guard<std::mutex> lock(mx_positions);
+    occupiedPositions.erase(makeKey(x, y));
 }
 
 

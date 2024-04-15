@@ -11,6 +11,7 @@ private:
 
     int current_floor = 0;
     int destination_floor = 0;
+    bool doors_opened;
 
 public:
 

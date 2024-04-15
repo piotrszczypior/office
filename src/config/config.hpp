@@ -21,9 +21,10 @@
 
 #define EXIT_TUNNEL_X (COLS / 2 + SHAFT_WIDTH / 2)
 
-#define EMPLOYEE_NUMBER 4
+#define EMPLOYEE_NUMBER 15
 
 inline std::mutex mx_drawing;
+inline std::mutex mx_positions;
 inline std::atomic<bool> program_running(true);
 inline int FLOOR_POSITIONS[] = {THIRD_FLOOR, SECOND_FLOOR, FIRST_FLOOR};
 
