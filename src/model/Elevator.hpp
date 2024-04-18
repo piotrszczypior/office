@@ -1,13 +1,19 @@
-#ifndef OFFICE_ELEVATOR_H
-#define OFFICE_ELEVATOR_H
+#ifndef OFFICE_ELEVATOR_HPP
+#define OFFICE_ELEVATOR_HPP
+
+#include "Employee.hpp"
+#include <vector>
+#include <memory>
 
 using namespace std;
+
+class Employee;
 
 class Elevator {
 private:
     int position_x{};
     int position_y{};
-    vector<Employee> employees_inside = vector<Employee>();
+    std::vector<std::shared_ptr<Employee>> employees_inside = std::vector<std::shared_ptr<Employee>>();
 
     int current_floor = 0;
     int destination_floor = 0;
@@ -54,11 +60,11 @@ public:
         return destination_floor;
     }
 
-    vector<Employee> get_employees() {
+    vector<std::shared_ptr<Employee>> get_employees() {
         return employees_inside;
     }
 
-    void add_passenger(Employee &employee) {
+    void add_passenger(const std::shared_ptr<Employee>& employee) {
         employees_inside.push_back(employee);
     }
 
@@ -68,4 +74,4 @@ public:
 };
 
 
-#endif //OFFICE_ELEVATOR_H
+#endif //OFFICE_ELEVATOR_HPP

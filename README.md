@@ -33,7 +33,7 @@ make
 ```
 
 ### Running the Application
-After compiling the project, you can run the application from the build directory.
+After compiling the project, you can create_ui the application from the build directory.
 
 ```bash
 cd build

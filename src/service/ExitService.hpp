@@ -4,8 +4,18 @@
 #include "../config/config.hpp"
 
 class ExitService {
-public:
+private:
+    thread exit_thread;
+
     static void exit_task();
+
+    void create_thread();
+
+public:
+
+    void join_thread();
+
+    void run();
 };
 
 void ExitService::exit_task() {
@@ -16,6 +26,20 @@ void ExitService::exit_task() {
             break;
         }
     }
+}
+
+void ExitService::join_thread() {
+    exit_thread.join();
+}
+
+void ExitService::create_thread() {
+    exit_thread = std::thread([]() -> void {
+        exit_task();
+    });
+}
+
+void ExitService::run() {
+    create_thread();
 }
 
 #endif //OFFICE_EXITSERVICE_HPP

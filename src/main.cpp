@@ -1,11 +1,11 @@
 #include <ncurses.h>
-#include <string>
 #include <thread>
-#include <mutex>
-#include "config/config.hpp"
 #include "model/Employee.hpp"
 #include "service/SimulationService.hpp"
 #include "service/ExitService.hpp"
+#include "window/Window.hpp"
+
+#include "builder/ElevatorBuilder.hpp"
 
 using namespace std;
 
@@ -15,6 +15,13 @@ void init_library() {
     curs_set(0);
     start_color();
 
+    initscr();
+    cbreak();
+    noecho();
+    curs_set(0);
+    keypad(stdscr, TRUE);
+    setlocale(LC_ALL, "");
+    clear();
 }
 
 void init_colors() {
@@ -33,44 +40,23 @@ void init_colors() {
     init_pair(13, COLOR_RED, COLOR_BLACK);
 }
 
-void draw_exit_window() {
-    const int height = 3;
-    const int width = 30;
-    const int start_x = (COLS - width) / 2;
-
-    WINDOW *exit_window = newwin(height, width, 0, start_x);
-    std::lock_guard<std::mutex> writing_lock(mx_drawing);
-    wattron(exit_window, COLOR_PAIR(1));
-    box(exit_window, 0, 0);
-    wattroff(exit_window, COLOR_PAIR(1));
-
-    const string message = "Press SPACE to exit";
-    mvwprintw(exit_window, height / 2, (width - message.size()) / 2, "%s", message.c_str());
-
-    wrefresh(exit_window);
-}
 
 int main() {
     init_library();
     init_colors();
 
-    std::thread exit_thread(&ExitService::exit_task);
-    draw_exit_window();
+    Elevator elevator = ElevatorBuilder::build();
 
-    EmployeeAnimation::print_floor_tunnel(ENTRY_TUNNEL_X, ENTRY_TUNNEL_Y);
-    EmployeeAnimation::print_floor_tunnel(EXIT_TUNNEL_X, FIRST_FLOOR + ELEVATOR_HEIGHT / 2);
-    EmployeeAnimation::print_floor_tunnel(EXIT_TUNNEL_X, SECOND_FLOOR + ELEVATOR_HEIGHT / 2);
-    EmployeeAnimation::print_floor_tunnel(EXIT_TUNNEL_X, THIRD_FLOOR + ELEVATOR_HEIGHT / 2);
-
-    Elevator elevator = Elevator()
-            .set_current_floor(3)
-            .set_position_y(1)
-            .set_position_x(1);
-
-    SimulationService simulation = SimulationService(elevator);
+    ExitService exitService = ExitService();
+    exitService.run();
+    State state = State(elevator);
+    Window window = Window(state);
+    window.create_thread();
+    SimulationService simulation = SimulationService(state);
     simulation.run();
 
-    exit_thread.join();
+    window.join_thread();
+    exitService.join_thread();
 
     endwin();
     return 0;

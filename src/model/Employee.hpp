@@ -1,23 +1,28 @@
-#ifndef OFFICE_EMPLOYEE_H
-#define OFFICE_EMPLOYEE_H
+#ifndef OFFICE_EMPLOYEE_HPP
+#define OFFICE_EMPLOYEE_HPP
 
 #include <string>
 #include <utility>
+#include "ncurses.h"
 
 using namespace std;
 
 class Employee {
 private:
-    string employee_name;
+    int id;
+    char employee_name;
     int color{};
     int position_x{}, position_y{};
     int speed{};
+    bool inside_elevator = false;
 
 public:
     explicit Employee() = default;
 
-    explicit Employee(string employee_name, int color, int position_x, int position_y) :
-            employee_name(std::move(employee_name)), color(color), position_x(position_x), position_y(position_y) {};
+    Employee &set_id(int id) {
+        this->id = id;
+        return *this;
+    }
 
     Employee &set_position_x(int x) {
         this->position_x = x;
@@ -34,8 +39,8 @@ public:
         return *this;
     }
 
-    Employee &set_employee_name(string name) {
-        this->employee_name = std::move(name);
+    Employee &set_employee_name(char name) {
+        this->employee_name = name;
         return *this;
     }
 
@@ -44,7 +49,16 @@ public:
         return *this;
     }
 
-    string get_employee_name() const {
+    Employee &set_inside_elevator(bool inside) {
+        this->inside_elevator = inside;
+        return *this;
+    }
+
+    int get_id() const {
+        return id;
+    }
+
+    char get_employee_name() const {
         return employee_name;
     }
 
@@ -63,6 +77,10 @@ public:
     int get_speed() const {
         return speed;
     }
+
+    bool is_inside_elevator() {
+        return inside_elevator;
+    }
 };
 
-#endif //OFFICE_EMPLOYEE_H
+#endif //OFFICE_EMPLOYEE_HPP
