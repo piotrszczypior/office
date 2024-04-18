@@ -40,6 +40,10 @@ cd build
 ./office
 ```
 
+## Screenshot
+
+![screenshot](screenshot.png)
+
 ## Licence
 
 This version includes improvements such as:
