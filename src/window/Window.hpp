@@ -12,7 +12,7 @@ private:
     State &state;
     thread ui_thread;
 
-    void print_shaft();
+    static void print_shaft();
 
     static void redraw_employee(const shared_ptr<Employee> &employee);
 

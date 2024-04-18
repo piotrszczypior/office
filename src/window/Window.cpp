@@ -25,10 +25,8 @@ void Window::redraw_elevator() {
 
     for (int y = elevator.get_position_y(); y < elevator.get_position_y() + ELEVATOR_HEIGHT; ++y) {
         mvhline(elevator.get_position_y(), elevator.get_position_x(), ' ' | A_REVERSE, ELEVATOR_HEIGHT);
-
         mvhline(elevator.get_position_y(), elevator.get_position_x(), ' ' | A_REVERSE, ELEVATOR_WIDTH);
-        mvhline(elevator.get_position_y() + ELEVATOR_HEIGHT - 1, elevator.get_position_x(), ' ' | A_REVERSE,
-                ELEVATOR_WIDTH);
+        mvhline(elevator.get_position_y() + ELEVATOR_HEIGHT - 1, elevator.get_position_x(), ' ' | A_REVERSE, ELEVATOR_WIDTH);
     }
 
     int message_start_x = elevator.get_position_x() + (ELEVATOR_WIDTH - inside_message.length()) / 2;
