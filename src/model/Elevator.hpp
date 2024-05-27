@@ -59,18 +59,6 @@ public:
     int get_destination_floor() const {
         return destination_floor;
     }
-
-    vector<std::shared_ptr<Employee>> get_employees() {
-        return employees_inside;
-    }
-
-    void add_passenger(const std::shared_ptr<Employee>& employee) {
-        employees_inside.push_back(employee);
-    }
-
-    void remove_all_passengers() {
-        employees_inside.clear();
-    }
 };
 
 

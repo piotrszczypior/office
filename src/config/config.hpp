@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <atomic>
+#include <condition_variable>
 
 #define FIRST_FLOOR 10
 #define SECOND_FLOOR 20
@@ -24,9 +25,13 @@
 
 #define EXIT_TUNNEL_X (COLS / 2 + SHAFT_WIDTH / 2 - 1)
 
-#define EMPLOYEE_NUMBER 15
+#define MAX_EMPLOYEE_IN_ELEVATOR 5
 
 inline volatile bool program_running(true);
 inline int FLOOR_POSITIONS[] = {THIRD_FLOOR, SECOND_FLOOR, FIRST_FLOOR};
+
+inline std::mutex mx_elevator;
+inline std::condition_variable cv_elevator_enter;
+inline std::condition_variable cv_elevator_exit;
 
 #endif // CONFIG_H

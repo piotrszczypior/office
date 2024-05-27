@@ -81,19 +81,18 @@ void SimulationService::elevator_work() {
             state.get_elevator().set_current_floor(state.get_elevator().get_current_floor() - 1);
         }
 
-        if (FLOOR_POSITIONS[state.get_elevator().get_destination_floor()] + 2 ==
-            state.get_elevator().get_position_y()) {
-            std::this_thread::sleep_for(std::chrono::seconds(2));
-            state.get_elevator().remove_all_passengers();
+        if (FLOOR_POSITIONS[state.get_elevator().get_destination_floor()] + 2 == state.get_elevator().get_position_y()) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            cv_elevator_exit.notify_all();
         }
 
         if (state.get_elevator().get_position_y() >= SHAFT_HEIGHT) {
             state.get_elevator().set_position_y(ELEVATOR_START_Y);
             state.get_elevator().set_current_floor(3);
             state.get_elevator().set_destination(floor_distribution(gen));
-            std::this_thread::sleep_for(std::chrono::seconds(2));
+            cv_elevator_enter.notify_all();
+            std::this_thread::sleep_for(std::chrono::seconds(3));
         }
-
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
@@ -105,39 +104,38 @@ void SimulationService::employee_work(const std::shared_ptr<Employee> &employee)
     while (program_running) {
         this_thread::sleep_for(chrono::milliseconds(200 * employee->get_speed()));
         if (employee->get_position_x() < TUNNEL_WIDTH + ENTRY_TUNNEL_X - 1) {
-
             employee->set_position_x(employee->get_position_x() + 1);
-
             continue;
         }
 
-        while (program_running) {
-            this_thread::sleep_for(chrono::milliseconds(50));
-
-            if (state.get_elevator().get_current_floor() == 3) {
-                employee->set_inside_elevator(true);
-                state.get_elevator().add_passenger(employee);
-                break;
-            }
+        {
+            std::unique_lock<std::mutex> lock(mx_elevator);
+            cv_elevator_enter.wait(lock,[this] -> bool {
+                return this->state.can_employee_enter_elevator() || !program_running;
+            });
         }
-        this_thread::sleep_for(chrono::milliseconds(100));
+        employee->set_inside_elevator(true);
+        state.employees_in_elevator++;
 
-        while (program_running &&
-               state.get_elevator().get_current_floor() != state.get_elevator().get_destination_floor()) {
-            this_thread::sleep_for(chrono::milliseconds(300));
+        {
+            std::unique_lock<std::mutex> lock(mx_elevator);
+            cv_elevator_exit.wait(lock, [this] -> bool {
+                return state.has_elevator_arrived_on_destination() || !program_running;
+            });
         }
         employee->set_inside_elevator(false);
-        employee->set_position_y(
-                FLOOR_POSITIONS[state.get_elevator().get_destination_floor()] + employee->get_position_y() - 2);
+        state.employees_in_elevator--;
+
+        int destination_floor = state.get_elevator().get_destination_floor();
+        employee->set_position_y(FLOOR_POSITIONS[destination_floor] + employee->get_position_y() - 2);
         employee->set_position_x(EXIT_TUNNEL_X);
-        this_thread::sleep_for(chrono::milliseconds(500 * employee->get_speed()));
 
         while (program_running) {
             this_thread::sleep_for(chrono::milliseconds(200 * employee->get_speed()));
-
             employee->set_position_x(employee->get_position_x() + 1);
 
             if (employee->get_position_x() >= TUNNEL_WIDTH + EXIT_TUNNEL_X) {
+                state.record_exiting(destination_floor);
                 state.remove_employee(employee);
                 return;
             }

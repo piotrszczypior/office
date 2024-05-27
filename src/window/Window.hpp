@@ -21,6 +21,9 @@ private:
     void create_ui();
 
     static void draw_exit_window();
+    void draw_employees_in_elevator_banner();
+
+    void draw_floor_counter(int position_x, int position_y, int number);
 
     static void print_floor_tunnel(int position_x, int position_y);
 
@@ -36,6 +39,8 @@ public:
     void join_thread() {
         ui_thread.join();
     }
+
+    void draw_employees_limit_banner();
 };
 
 

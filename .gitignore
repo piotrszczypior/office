@@ -36,6 +36,7 @@
 
 #build
 /build
+/cmake-build-debug
 
 # vs code
 .vscode

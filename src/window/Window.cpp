@@ -3,7 +3,7 @@
 #include <iostream>
 
 void Window::redraw_employee(const shared_ptr<Employee> &employee) {
-    if (employee->is_inside_elevator()){
+    if (employee->is_inside_elevator()) {
         return;
     }
     attron(COLOR_PAIR(employee->get_color()));
@@ -15,8 +15,9 @@ void Window::redraw_elevator() {
     std::string inside_message;
     Elevator elevator = state.get_elevator();
 
-    for (const auto &employee: elevator.get_employees()) {
-        inside_message += string(1, employee->get_employee_name()) + " ";
+    for (const auto &employee: state.get_employees()) {
+        if (employee->is_inside_elevator())
+            inside_message += string(1, employee->get_employee_name()) + " ";
     }
 
     if (inside_message.empty()) {
@@ -26,7 +27,8 @@ void Window::redraw_elevator() {
     for (int y = elevator.get_position_y(); y < elevator.get_position_y() + ELEVATOR_HEIGHT; ++y) {
         mvhline(elevator.get_position_y(), elevator.get_position_x(), ' ' | A_REVERSE, ELEVATOR_HEIGHT);
         mvhline(elevator.get_position_y(), elevator.get_position_x(), ' ' | A_REVERSE, ELEVATOR_WIDTH);
-        mvhline(elevator.get_position_y() + ELEVATOR_HEIGHT - 1, elevator.get_position_x(), ' ' | A_REVERSE, ELEVATOR_WIDTH);
+        mvhline(elevator.get_position_y() + ELEVATOR_HEIGHT - 1, elevator.get_position_x(), ' ' | A_REVERSE,
+                ELEVATOR_WIDTH);
     }
 
     int message_start_x = elevator.get_position_x() + (ELEVATOR_WIDTH - inside_message.length()) / 2;
@@ -132,6 +134,66 @@ void Window::draw_exit_window() {
     mvprintw(start_y + height / 2, start_x + (width - message.size()) / 2, "%s", message.c_str());
 }
 
+
+void Window::draw_employees_in_elevator_banner() {
+    const int height = 3;
+    const int width = 30;
+    const int start_x = (COLS - width) / 2 + 30;
+    const int start_y = 0;
+
+    attron(COLOR_PAIR(5));
+
+    for (int x = start_x; x < start_x + width; ++x) {
+        mvaddch(start_y, x, ACS_HLINE);
+        mvaddch(start_y + height - 1, x, ACS_HLINE);
+    }
+
+    for (int y = start_y; y < start_y + height; ++y) {
+        mvaddch(y, start_x, ACS_VLINE);
+        mvaddch(y, start_x + width - 1, ACS_VLINE);
+    }
+
+    mvaddch(start_y, start_x, ACS_ULCORNER);
+    mvaddch(start_y, start_x + width - 1, ACS_URCORNER);
+    mvaddch(start_y + height - 1, start_x, ACS_LLCORNER);
+    mvaddch(start_y + height - 1, start_x + width - 1, ACS_LRCORNER);
+
+    attroff(COLOR_PAIR(5));
+
+    std::string message = "Employees in elevator: " + to_string(state.employees_in_elevator);
+    mvprintw(start_y + height / 2, start_x + (width - message.size()) / 2, "%s", message.c_str());
+}
+
+
+void Window::draw_employees_limit_banner() {
+    const int height = 3;
+    const int width = 30;
+    const int start_x = (COLS - width) / 2 - 30;
+    const int start_y = 0;
+
+    attron(COLOR_PAIR(11));
+
+    for (int x = start_x; x < start_x + width; ++x) {
+        mvaddch(start_y, x, ACS_HLINE);
+        mvaddch(start_y + height - 1, x, ACS_HLINE);
+    }
+
+    for (int y = start_y; y < start_y + height; ++y) {
+        mvaddch(y, start_x, ACS_VLINE);
+        mvaddch(y, start_x + width - 1, ACS_VLINE);
+    }
+
+    mvaddch(start_y, start_x, ACS_ULCORNER);
+    mvaddch(start_y, start_x + width - 1, ACS_URCORNER);
+    mvaddch(start_y + height - 1, start_x, ACS_LLCORNER);
+    mvaddch(start_y + height - 1, start_x + width - 1, ACS_LRCORNER);
+
+    attroff(COLOR_PAIR(11));
+
+    std::string message = "Limit in elevator: " + to_string(MAX_EMPLOYEE_IN_ELEVATOR + 1);
+    mvprintw(start_y + height / 2, start_x + (width - message.size()) / 2, "%s", message.c_str());
+}
+
 void Window::print_floor_tunnel(int position_x, int position_y) {
     for (int x = 1; x < TUNNEL_WIDTH - 1; ++x) {
         mvaddch(position_y, position_x + x, ACS_HLINE);
@@ -139,14 +201,50 @@ void Window::print_floor_tunnel(int position_x, int position_y) {
     }
 }
 
+void Window::draw_floor_counter(int position_x, int position_y, int number) {
+    attron(COLOR_PAIR(2));
+    int number_of_digits = std::to_string(std::abs(number)).length();
+
+    int width = number_of_digits % 2 == 1 ? 11 : 10;
+
+    for (int x = 0; x < width; ++x) {
+        mvaddch(position_y, position_x + x, ACS_HLINE);
+        mvaddch(position_y + 4, position_x + x, ACS_HLINE);
+    }
+
+    for (int y = 0; y < 5; ++y) {
+        mvaddch(position_y + y, position_x, ACS_VLINE);
+        mvaddch(position_y + y, position_x + width - 1, ACS_VLINE);
+    }
+
+    mvaddch(position_y, position_x, ACS_ULCORNER);
+    mvaddch(position_y, position_x + width - 1, ACS_URCORNER);
+    mvaddch(position_y + 4, position_x, ACS_LLCORNER);
+    mvaddch(position_y + 4, position_x + width - 1, ACS_LRCORNER);
+
+    attroff(COLOR_PAIR(2));
+    int midX = (width / 2) + position_x;
+    midX -= number_of_digits / 2;
+    int midY = position_y + 2;
+
+    mvprintw(midY, midX, "%d", number);
+}
+
 void Window::create_ui() {
     while (program_running) {
         clear();
         draw_exit_window();
+        draw_employees_in_elevator_banner();
+        draw_employees_limit_banner();
+
         print_shaft();
         print_floor_tunnel(EXIT_TUNNEL_X, FIRST_FLOOR + ELEVATOR_HEIGHT / 2);
         print_floor_tunnel(EXIT_TUNNEL_X, SECOND_FLOOR + ELEVATOR_HEIGHT / 2);
         print_floor_tunnel(EXIT_TUNNEL_X, THIRD_FLOOR + ELEVATOR_HEIGHT / 2);
+
+        draw_floor_counter(EXIT_TUNNEL_X + TUNNEL_WIDTH, FIRST_FLOOR + ELEVATOR_HEIGHT / 2, state.get_record()[2]);
+        draw_floor_counter(EXIT_TUNNEL_X + TUNNEL_WIDTH, SECOND_FLOOR + ELEVATOR_HEIGHT / 2, state.get_record()[1]);
+        draw_floor_counter(EXIT_TUNNEL_X + TUNNEL_WIDTH, THIRD_FLOOR + ELEVATOR_HEIGHT / 2, state.get_record()[0]);
 
         redraw_elevator();
 
@@ -154,6 +252,6 @@ void Window::create_ui() {
             redraw_employee(employee);
         }
         refresh();
-        this_thread::sleep_for(chrono::milliseconds(50));
+        this_thread::sleep_for(chrono::milliseconds(10));
     }
 }

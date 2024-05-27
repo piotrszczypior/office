@@ -23,6 +23,8 @@ void ExitService::exit_task() {
         int input_char = getchar();
         if (input_char == ' ') {
             program_running = false;
+            cv_elevator_exit.notify_all();
+            cv_elevator_enter.notify_all();
             break;
         }
     }
