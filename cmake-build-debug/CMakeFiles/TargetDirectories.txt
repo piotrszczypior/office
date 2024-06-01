@@ -1,3 +1,0 @@
-/home/piotr-szczypior/pwr/office/cmake-build-debug/CMakeFiles/office.dir
-/home/piotr-szczypior/pwr/office/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/piotr-szczypior/pwr/office/cmake-build-debug/CMakeFiles/rebuild_cache.dir

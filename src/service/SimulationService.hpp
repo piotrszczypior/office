@@ -113,18 +113,20 @@ void SimulationService::employee_work(const std::shared_ptr<Employee> &employee)
             cv_elevator_enter.wait(lock,[this] -> bool {
                 return this->state.can_employee_enter_elevator() || !program_running;
             });
+
+            employee->set_inside_elevator(true);
+            state.employees_in_elevator++;
         }
-        employee->set_inside_elevator(true);
-        state.employees_in_elevator++;
 
         {
             std::unique_lock<std::mutex> lock(mx_elevator);
             cv_elevator_exit.wait(lock, [this] -> bool {
                 return state.has_elevator_arrived_on_destination() || !program_running;
             });
+
+            employee->set_inside_elevator(false);
+            state.employees_in_elevator--;
         }
-        employee->set_inside_elevator(false);
-        state.employees_in_elevator--;
 
         int destination_floor = state.get_elevator().get_destination_floor();
         employee->set_position_y(FLOOR_POSITIONS[destination_floor] + employee->get_position_y() - 2);
