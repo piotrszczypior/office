@@ -43,7 +43,7 @@ cd build
 
 ## Screenshot
 
-![screenshot](screenshot.png)
+![screenshot](screenshot_2.png)
 
 ## Licence
 
