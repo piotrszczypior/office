@@ -25,6 +25,7 @@ void ExitService::exit_task() {
             program_running = false;
             cv_elevator_exit.notify_all();
             cv_elevator_enter.notify_all();
+            exit_condition_variable.notify_all();
             break;
         }
     }

@@ -18,7 +18,6 @@
 class State {
 private:
     Elevator &elevator;
-    std::mutex employees_mutex;
     std::vector<std::shared_ptr<Employee>> employees = std::vector<std::shared_ptr<Employee>>();
     int EXITED_EMPLOYEES[3] = {0, 0, 0};
 
@@ -47,16 +46,15 @@ public:
         employees.push_back(employee);
     }
 
-    void record_exiting(int destination) {
+    void record_employee_to_leave_office(int destination) {
         EXITED_EMPLOYEES[destination]++;
     }
 
-    int* get_record() {
+    int *get_record() {
         return EXITED_EMPLOYEES;
     }
 
     void remove_employee(const std::shared_ptr<Employee> &employee) {
-        std::lock_guard<std::mutex> lock(employees_mutex);
         auto it = std::find_if(employees.begin(), employees.end(), [&](const std::shared_ptr<Employee> &e) {
             return e->get_id() == employee->get_id() && e->get_employee_name() == employee->get_employee_name();
         });
@@ -64,6 +62,14 @@ public:
         if (it != employees.end()) {
             employees.erase(it);
         }
+    }
+
+    bool can_employee_exit(int floor) {
+        if (EXITED_EMPLOYEES[floor] == 0) {
+            return true;
+        }
+
+        return EXITED_EMPLOYEES[floor] % MAX_NUMBER_OF_EMPLOYEES_EXITING_AT_ONCE != 0;
     }
 };
 

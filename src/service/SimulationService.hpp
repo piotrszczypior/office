@@ -17,8 +17,9 @@ using namespace std;
 class SimulationService {
     std::vector<std::thread> employees_threads = vector<std::thread>();
     std::thread elevator_thread;
-    std::thread drawing_thread;
     vector<Employee> employees = vector<Employee>();
+
+    std::mutex employees_mutex;
 
     State &state;
 
@@ -83,14 +84,20 @@ void SimulationService::elevator_work() {
 
         if (FLOOR_POSITIONS[state.get_elevator().get_destination_floor()] + 2 == state.get_elevator().get_position_y()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
-            cv_elevator_exit.notify_all();
+            {
+                std::lock_guard<std::mutex> lock(mx_elevator);
+                cv_elevator_exit.notify_all();
+            }
         }
 
         if (state.get_elevator().get_position_y() >= SHAFT_HEIGHT) {
-            state.get_elevator().set_position_y(ELEVATOR_START_Y);
-            state.get_elevator().set_current_floor(3);
-            state.get_elevator().set_destination(floor_distribution(gen));
-            cv_elevator_enter.notify_all();
+            {
+                std::lock_guard<std::mutex> lock(mx_elevator);
+                state.get_elevator().set_position_y(ELEVATOR_START_Y);
+                state.get_elevator().set_current_floor(3);
+                state.get_elevator().set_destination(floor_distribution(gen));
+                cv_elevator_enter.notify_all();
+            }
             std::this_thread::sleep_for(std::chrono::seconds(3));
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -136,9 +143,19 @@ void SimulationService::employee_work(const std::shared_ptr<Employee> &employee)
             this_thread::sleep_for(chrono::milliseconds(200 * employee->get_speed()));
             employee->set_position_x(employee->get_position_x() + 1);
 
-            if (employee->get_position_x() >= TUNNEL_WIDTH + EXIT_TUNNEL_X) {
-                state.record_exiting(destination_floor);
-                state.remove_employee(employee);
+            if (employee->get_position_x() >= TUNNEL_WIDTH + EXIT_TUNNEL_X - 1) {
+
+                if (!state.can_employee_exit(destination_floor)) {
+                    std::unique_lock<std::mutex> lock(employees_mutex);
+                    exit_condition_variable.wait_for(lock, std::chrono::seconds(BREAK_IN_SECONDS));
+                }
+
+                {
+                    std::unique_lock<std::mutex> lock(employees_mutex);
+                    state.record_employee_to_leave_office(destination_floor);
+                    state.remove_employee(employee);
+                }
+
                 return;
             }
         }
